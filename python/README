@@ -1,0 +1,11 @@
+bip.py:
+    A script generating a sequence of bytes which piped to aplay makes some strange noises.
+
+gen.py:
+    A script which generate html files containing links to the images in the current directory.
+
+rand.py:
+    Un script qui affiche des images aléatoires. Il accepte en argument l'expression régulière selon laquelle il choisit la liste d'images (il en existe une par défaut si vous n'ajoutez aucun argument). Puis, un prompt vous demande en boucle combien d'images vous voulez à chaque fois.
+
+roulette.py:
+    Un jeu de roulette en console.
