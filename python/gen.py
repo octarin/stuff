@@ -3,23 +3,11 @@
 import sys
 import os
 import re
-import random
 
+#Some variables you can modify
 NOM_PAGE_BASE = "biblio"
 NOMBRE_IMG_PAGE = 50
 TYPES_IMG = "\.(jpg)|(png)|(bmp)|(jpeg)|(gif)|(PNG)|(JPG)$"
-
-def img_rand(img_list):
-    try:
-        while 1:
-            buf = input()
-            if buf == '':
-                buf = '1'
-            random.shuffle(img_list)
-            os.system("feh -. -d \"{0}\" &".format("\" \"".join(img_list[:int(buf)])))
-
-    except:
-        return
 
 def makepage(numero, img_list):
     fd = open("{0}{1}.html".format(NOM_PAGE_BASE, numero), 'w')
@@ -55,19 +43,12 @@ def makepage(numero, img_list):
     sys.stdout = sys.__stdout__
     fd.close()
 
-os.system('rm -rf *.html')
+os.system('rm -rf {0}*.html'.format(NOM_PAGE_BASE))
 
 img_list = sorted([i for i in os.listdir('.') if re.search(TYPES_IMG, i) != None])
 
 for i in range(0, int(len(img_list) / NOMBRE_IMG_PAGE) + 1):
     makepage(i, img_list)
-
-rep = input("Ouvrir la bibliotheque/Images random/Fermer (1/2/3) : ")
-
-if rep == '1':
-    os.system('firefox {0}0.html& 2> /dev/null > /dev/null'.format(NOM_PAGE_BASE))
-elif rep == '2':
-    img_rand(img_list)
 
 sys.exit(0)
 
