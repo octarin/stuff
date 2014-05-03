@@ -13,7 +13,7 @@ if __name__ == "__main__":
         FILES = sys.argv[1]
     lp = [i for i in os.listdir('.') if re.search(FILES, i)]
     if len(lp) == 0:
-        print("Error: the current directory does'nt contains any pictures matching the regex \"{0}\"".format(files))
+        print("Error: the current directory does'nt contains any pictures matching the regex \"{0}\"".format(FILES))
         sys.exit(-1)
 
     com = 1
