@@ -1,8 +1,9 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
-import os
-import random
-import re
+from os import listdir
+from subprocess import call
+from random import shuffle
+from re import search
 import sys
 
 FILES = "\.(jpg)|(JPG)|(png)|(PNG)|(bmp)|(jpeg)|(gif)$"
@@ -11,7 +12,7 @@ COMMAND = "feh -.d"
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         FILES = sys.argv[1]
-    lp = [i for i in os.listdir('.') if re.search(FILES, i)]
+    lp = [i for i in listdir('.') if search(FILES, i)]
     if len(lp) == 0:
         print("Error: the current directory does'nt contains any pictures matching the regex \"{0}\"".format(FILES))
         sys.exit(-1)
@@ -30,8 +31,9 @@ if __name__ == "__main__":
                 print("Warning : max len", com, file=sys.stderr)
                 print("Loading", com, "pictures by default", file=sys.stderr)
 
-            random.shuffle(lp)
-            os.system("{0} \"{1}\" &".format(COMMAND, "\" \"".join(lp[:int(com)])))
+            shuffle(lp)
+
+            call(COMMAND.split() + lp[:int(com)])
 
         except:
             break
