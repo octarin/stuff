@@ -2,6 +2,7 @@
 
 import sys
 import os
+import subprocess
 import re
 
 #Some variables you can modify
@@ -43,7 +44,7 @@ def makepage(numero, img_list):
     sys.stdout = sys.__stdout__
     fd.close()
 
-os.system('rm -rf {0}*.html'.format(NOM_PAGE_BASE))
+os.system('rm {0}*.html'.format(NOM_PAGE_BASE))
 
 img_list = sorted([i for i in os.listdir('.') if re.search(TYPES_IMG, i) != None])
 
