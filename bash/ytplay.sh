@@ -18,7 +18,7 @@ if [[ -z $1 ]]; then
 	EXAMPLES OF USE:
 
 	ytplay.sh \"asdf movie\"                   # Will recense the list of the asdf movies
-	vlc $\(ytplay.sh \"Atom Heart Mother\"\) 1 # Will play Atom Heart Mother with vlc
+	vlc $\(ytplay.sh \"Atom Heart Mother\" 1\)   # Will play Atom Heart Mother with vlc
 	"
 
 fi
