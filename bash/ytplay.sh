@@ -23,7 +23,7 @@ if [[ -z $1 ]]; then
     ytplay.sh \"asdf movie\"					   # Will recense the list of the asdf movies
     vlc $\(ytplay.sh \"Atom Heart Mother\" 2 1\)   # Will play Atom Heart Mother with vlc
     "
-	exit
+    exit
 
 fi
 
@@ -53,15 +53,11 @@ play() {
     local i
     local n
     while read i; do
-        let n++;
-        echo -e "$n $i"|
-        {
-            if [[ "$n" == "$1" ]]; then 
-                cat | cut -d ' ' -f 2
-            else 
-                cat > /dev/null
-            fi
-        }
+        let n++; 
+        if [[ "$n" == "$1" ]]; then 
+            echo "$i" | cut -d ' ' -f 1
+            break
+        fi
     done
 }
 
