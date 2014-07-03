@@ -65,7 +65,7 @@ play() {
 main() {
     query="https://www.youtube.com/results?search_query=$(echo $1|sed "y/\ /+/")&page=$2"
     wget -q $query -O - |
-    sed -rn "s/^.*<h3.*href=\"(\/watch\?v=[^\"]+)\">([^<]+).*/https:\/\/www.youtube.com\1 - \2/p" | 
+    sed -rn "s/^.*href=\"(\/watch\?v=[^\"]+)\"[^>]*>([^<]+).*/https:\/\/www.youtube.com\1 - \2/p" | 
     buf
 }
 
