@@ -6,34 +6,34 @@ from random import shuffle
 from re import search
 import sys
 
-FILES = "\.(jpg)|(JPG)|(png)|(PNG)|(bmp)|(jpeg)|(gif)$"
-COMMAND = "feh -.d"
+FILE_MATCH = "\.(jpg)|(JPG)|(png)|(PNG)|(bmp)|(jpeg)|(gif)$"
+COMMAND = "feh -.d --zoom=max"
 
 if len(sys.argv) > 1:
-    FILES = sys.argv[1]
+    FILE_MATCH = sys.argv[1]
 
-lp = [i for i in listdir('.') if search(FILES, i)]
-if len(lp) == 0:
-    print("Error: the current directory does'nt contains any pictures matching the regex \"{0}\"".format(FILES))
+pictures_list = [_file for _file in listdir('.') if search(FILE_MATCH, _file)]
+if len(pictures_list) == 0:
+    print("Error: the current directory does'nt contains any pictures matching the regex \"{0}\"".format(FILE_MATCH))
     sys.exit(-1)
 
-com = 1
+nb_to_load = 1
 
-while 1:
+while True:
     try:
-        c_ = input()
+        _ = input()
 
-        if c_ != "":
-            com = c_
+        if _ != "":                             #Does'nt modify nb_to_load if user inputs nothing
+            nb_to_load = int(_)
 
-        if int(com) > len(lp):
-            com = len(lp);
-            print("Warning : max len", com, file=sys.stderr)
-            print("Loading", com, "pictures by default", file=sys.stderr)
+        if nb_to_load > len(pictures_list):
+            nb_to_load = len(pictures_list);
+            print("Warning : max len", nb_to_load, 
+                  "\nLoading", nb_to_load, "pictures by default", file=sys.stderr)
 
-        shuffle(lp)
+        shuffle(pictures_list)
 
-        call(COMMAND.split() + lp[:int(com)])
+        call(COMMAND.split() + pictures_list[:int(nb_to_load)])
 
     except:
         break
