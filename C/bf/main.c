@@ -1,127 +1,153 @@
-/* 
- * Brainfuck interpreter implementation
- * (C) Pierre Bonnet 2013
- * This program is free software.
- * Read the GNU General Public License for more informations
- */
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#define MAX_CAR 1024 * 1024     // 1 MB symbols max (including the comments)
-#define MEMSIZE 500             // Memory size
+#define CODESIZE  0x1000000    // 16MB
+#define MEMSIZE   3000         // Dans la spec ?
+#define STACKSIZE 0x100000     // 8MB
 
-void print_usage(void)
+char *load(char*);
+void interp(char*);
+char *next(char*);
+
+static char mem[MEMSIZE] = {'\0'};
+static char *stack[STACKSIZE] = {NULL};
+
+int main(int argc, char *argv[])
 {
-    puts("Brainfuck interpreter (C) Pierre Bonnet 2013");
-    puts("Version 1.0");
-    puts("This program reads the brainfuck symbols\nfrom the standard input and execute the brainfuck");
+    char *code = NULL;
+
+    /* Loads the code */
+    if (argc <= 1 || (code = load(argv[1])) == NULL)
+        return -1;
+
+    interp(code);
+
+    free(code);
+
+    return 0;
 }
 
-int parse(char* string)
+/* Loads the code into a string */
+char *load(char *name)
 {
-    int i, nd, nf;
+    FILE *fd = NULL;
 
-    for (i = nd = nf = 0; string[i]; i++) {
-        if (string[i] == '[')
-            nd++;
-        else if (string[i] == ']')
-            nf++;
+    if ((fd = fopen(name, "r")) == NULL) {
+        perror("fopen");
+        return NULL;
     }
 
-    return nd - nf;
-}
+    char *code = NULL, *nreal = NULL;
+    int i = 0, ret = 0;
 
-int main(int argc, char* argv[])
-{
-    FILE* fichier = stdin;
-    char *code = (char*) malloc(MAX_CAR);
-    char mem[MEMSIZE];
-    char **stack = NULL;
-    char *ip = code;
-    char *mp = mem;
-    int i = 0, nloop = 0;
+    code = malloc(CODESIZE);
+    if (code == NULL) {
+        perror("malloc");
+        fclose(fd);
+        return NULL;
+    }
 
-    (void*) memset(mem, 0, MEMSIZE);
-
-    if (argc > 1) { 
-        if (!strcmp(argv[1], "--help")) {
-            print_usage();
-            return 0;
-        } else {
-            if (!(fichier = fopen(argv[1], "r"))) {
-                fprintf(stderr, "Could'nt open file\n");
-                return 1;
-            }
+    while ( (code[i++] = fgetc(fd)) != EOF) {
+        if (i >= CODESIZE) {
+            fprintf(stderr, "Error : your code exceed %dMB\n. Aborting\n", CODESIZE);
+            free(code);
+            fclose(fd);
+            return NULL;
         }
     }
 
+    fclose(fd);
 
-    /* Fill the code string with stdin */
-    do {
-        code[i] = fgetc(fichier);
-    } while (code[i++] != EOF);
-    code = realloc(code, i);
-    code[i - 1] = 0;
-
-    if (parse(code) < 0) {
-        perror("Error : more ']' than '['. Stopping.");
-        return 1;
-    } else if (parse(code) > 0) {
-        perror("Error : more '[' than ']'. Stopping.");
-        return 1;
+    if ( (nreal = realloc(code, i)) == NULL) {
+        perror("realloc");
+        free(code);
+        return NULL;
     }
 
-    /* Begin the executing */
+    code = nreal;
+    code[--i] = 0;
+
+    return code;
+}
+
+/* Interprète le code brainfuck */
+void interp(char *code)
+{
+    char *ip = code;
+    char **sp = stack;
+    char *mp = mem;
+
     while (*ip) {
+
         switch (*ip) {
             case '+':
-                ++*mp;
+                ++(*mp);
                 break;
             case '-':
-                --*mp;
+                --(*mp);
                 break;
             case '>':
-                if (mp + 1 != mem + MEMSIZE) {
-                    ++mp;
-                } else {
-                    mp = mem;
-                }
+                mp = (mp + 1 - mem) % MEMSIZE + mem;
                 break;
             case '<':
-                if (mp - 1 >= mem) {
-                    --mp;
-                } else {
-                    mp = mem + MEMSIZE - 1;
-                }
-                break;
-            case '[':
-                if (*mp) {
-                    stack = realloc(stack, ++nloop);
-                    stack[nloop - 1] = ip;
-                } else {
-                    ip = strchr(ip, ']');
-                }
-                break;
-            case ']':
-                if (*mp) {
-                    ip = stack[nloop - 1];
-                } else {
-                    stack = realloc(stack, --nloop);
-                }
-                break;
-            case '.':
-                putchar(*mp);
+                mp = (mp - 1 - mem) % MEMSIZE + mem;
                 break;
             case ',':
                 *mp = getchar();
                 break;
+            case '.':
+                putchar(*mp);
+                break;
+            case '[':
+                if (*mp) {
+#ifdef DEBUG
+                    printf("[: stack += %x\n", ip - code);
+#endif
+                    *(++sp) = ip;
+                } else {
+#ifdef DEBUG
+                    printf("[: on passe de %x à ", ip - code);
+#endif
+                    ip = next(ip);
+#ifdef DEBUG
+                    printf("%x\n", ip - code);
+#endif
+                }
+
+                break;
+            case ']':
+                if (*mp) {
+#ifdef DEBUG
+                    printf("]: on boucle  de %x à %x\n", ip - code, *sp - code);
+#endif
+                    ip = *sp;
+                } else {
+#ifdef DEBUG
+                    printf("]: on sort en %x\n", ip - code);
+#endif
+                    --sp;
+                }
+
+                break;
         }
         ++ip;
     }
-
-    free(code);
-    return 0;
 }
+
+char *next(char *ip)
+{
+    int balance = 0;
+
+    do {
+        if (*ip == '[')
+            ++balance;
+        else if (*ip == ']')
+            --balance;
+        ++ip;
+    } while (balance);
+
+    return ip - 1;
+}
+
+
 
