@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-/* Loads the code into a string */
+/* Loads a file into a string dynamically allocated*/
 char *load(char *name)
 {
     FILE *fd = NULL;
@@ -43,32 +43,34 @@ char *load(char *name)
     code = malloc(CODESIZE);
     if (code == NULL) {
         perror("malloc");
-        fclose(fd);
-        return NULL;
+        goto end;
     }
 
     while ( (code[i++] = fgetc(fd)) != EOF) {
         if (i >= CODESIZE) {
-            fprintf(stderr, "Error : your code exceed %dMB\n. Aborting\n", CODESIZE);
-            free(code);
-            fclose(fd);
-            return NULL;
+            fprintf(stderr, "Error : the file exceed %d symbols\n. Aborting\n", CODESIZE);
+            goto freemem;
         }
     }
 
-    fclose(fd);
-
     if ( (nreal = realloc(code, i)) == NULL) {
         perror("realloc");
-        free(code);
-        return NULL;
+        goto freemem;
     }
 
     code = nreal;
     code[--i] = 0;
+    goto end;
 
+freemem:
+    free(code);
+
+end:
+    fclose(fd);
     return code;
 }
+
+
 
 /* Interprète le code brainfuck */
 void interp(char *code)
