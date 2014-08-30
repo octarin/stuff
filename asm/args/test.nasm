@@ -4,30 +4,27 @@ extern puts
 global main
 
 main:
-push ebp
-mov ebp, esp
-sub esp, 4
+    push ebp
+    mov ebp, esp
 
-mov eax, dword [ebp+8]
-mov dword [esp], eax ; on stocke le nombre d'arguments
+    xor ebx, ebx
+    .argloop:
 
-xor ebx, ebx ; on initialise le compteur de boucle
+        mov eax, dword [ebp + 0xc]
+        mov eax, dword [eax + 4 * ebx]
 
-lh:
+        test eax, eax
+        jz .end
 
-mov eax, dword [ebp + 0xc]
-mov eax, dword [eax + 4 * ebx]
+        push eax
+        call puts
+        add esp, 4
 
-push eax
-call puts
-add esp, 4
+        inc ebx
+        jmp .argloop
 
-inc ebx
-cmp ebx, dword [esp]
-jl lh
+    .end:
 
-mov eax, 0
-
-leave
-ret
+    leave
+    ret
 
