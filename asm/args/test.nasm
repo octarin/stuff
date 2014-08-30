@@ -16,10 +16,7 @@ xor ebx, ebx ; on initialise le compteur de boucle
 lh:
 
 mov eax, dword [ebp + 0xc]
-mov edx, 4
-imul edx, ebx
-add eax, edx
-mov eax, dword [eax]
+mov eax, dword [eax + 4 * ebx]
 
 push eax
 call puts
