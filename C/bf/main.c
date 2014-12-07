@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 #define CODESIZE  0x1000000    // 16MB
 #define MEMSIZE   3000         // The size of the memory
@@ -31,8 +34,9 @@ int main(int argc, char *argv[])
 char *load(char *name)
 {
     struct stat fbuf;
-    int size, fd;
-    short *buf = NULL;
+    int fd;
+    unsigned long size;
+    char *buf = NULL;
 
     if ((fd = open(name, O_RDONLY)) == -1) {
         perror("open");
@@ -40,7 +44,7 @@ char *load(char *name)
     }
 
     fstat(fd, &fbuf);
-    size = buf.st_size;
+    size = fbuf.st_size;
 
     buf = (char*) malloc(size);
     read(fd, buf, size);
