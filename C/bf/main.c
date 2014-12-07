@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #define CODESIZE  0x1000000    // 16MB
-#define MEMSIZE   3000         // Dans la spec ?
+#define MEMSIZE   3000         // The size of the memory
 #define STACKSIZE 0x100000     // 8MB
 
 char *load(char*);
@@ -30,46 +30,23 @@ int main(int argc, char *argv[])
 /* Loads a file into a string dynamically allocated*/
 char *load(char *name)
 {
-    FILE *fd = NULL;
+    struct stat fbuf;
+    int size, fd;
+    short *buf = NULL;
 
-    if ((fd = fopen(name, "r")) == NULL) {
-        perror("fopen");
+    if ((fd = open(name, O_RDONLY)) == -1) {
+        perror("open");
         return NULL;
     }
 
-    char *code = NULL, *nreal = NULL;
-    int i = 0, ret = 0;
+    fstat(fd, &fbuf);
+    size = buf.st_size;
 
-    code = malloc(CODESIZE);
-    if (code == NULL) {
-        perror("malloc");
-        goto end;
-    }
+    buf = (char*) malloc(size);
+    read(fd, buf, size);
 
-    while ( (code[i++] = fgetc(fd)) != EOF) {
-        if (i >= CODESIZE) {
-            fprintf(stderr, "Error : the file exceed %d symbols\n. Aborting\n", CODESIZE);
-            goto freemem;
-        }
-    }
-
-    if ( (nreal = realloc(code, i)) == NULL) {
-        perror("realloc");
-        goto freemem;
-    }
-
-    code = nreal;
-    code[--i] = 0;
-    goto end;
-
-freemem:
-    free(code);
-
-end:
-    fclose(fd);
-    return code;
+    return buf;
 }
-
 
 
 /* Interprète le code brainfuck */
@@ -101,34 +78,17 @@ void interp(char *code)
                 putchar(*mp);
                 break;
             case '[':
-                if (*mp) {
-#ifdef DEBUG
-                    printf("[: stack += %x\n", ip - code);
-#endif
+                if (*mp)
                     *(++sp) = ip;
-                } else {
-#ifdef DEBUG
-                    printf("[: on passe de %x à ", ip - code);
-#endif
+                else
                     ip = next(ip);
-#ifdef DEBUG
-                    printf("%x\n", ip - code);
-#endif
-                }
 
                 break;
             case ']':
-                if (*mp) {
-#ifdef DEBUG
-                    printf("]: on boucle  de %x à %x\n", ip - code, *sp - code);
-#endif
+                if (*mp)
                     ip = *sp;
-                } else {
-#ifdef DEBUG
-                    printf("]: on sort en %x\n", ip - code);
-#endif
+                else
                     --sp;
-                }
 
                 break;
         }
